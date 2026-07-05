@@ -4,12 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Мои задачи</title>
-
-<!-- SDK Телеграма -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <style>
-  /* Цвета из темы Телеграма (после запятой — запасной вариант для браузера) */
   :root {
     --bg: var(--tg-theme-bg-color, #f2f4f7);
     --card: var(--tg-theme-secondary-bg-color, #ffffff);
@@ -17,245 +13,110 @@
     --hint: var(--tg-theme-hint-color, #8a919e);
     --accent: var(--tg-theme-button-color, #2f7de1);
     --accent-text: var(--tg-theme-button-text-color, #ffffff);
-
-    /* Приоритеты и сроки — фиксированные, работают в обеих темах */
-    --p-high: #e5484d;
-    --p-mid:  #f2a33c;
-    --p-low:  #5b9dff;
-    --overdue: #e5484d;
-    --today: #f2a33c;
+    --p-high: #e5484d; --p-mid: #f2a33c; --p-low: #5b9dff;
+    --overdue: #e5484d; --today: #f2a33c;
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 16px 16px 96px;
-  }
-
-  /* ---------- Шапка ---------- */
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px 16px 96px; }
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
   header h1 { font-size: 22px; font-weight: 700; }
   header .date { font-size: 13px; color: var(--hint); margin-top: 2px; text-transform: capitalize; }
+  .ring { --p: 0; width: 52px; height: 52px; min-width: 52px; border-radius: 50%; background: conic-gradient(var(--accent) calc(var(--p) * 1%), color-mix(in srgb, var(--hint) 22%, transparent) 0); display: grid; place-items: center; }
+  .ring::before { content: attr(data-label); width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display: grid; place-items: center; font-size: 12px; font-weight: 600; }
 
-  .ring {
-    --p: 0;
-    width: 52px; height: 52px; min-width: 52px;
-    border-radius: 50%;
-    background: conic-gradient(var(--accent) calc(var(--p) * 1%), color-mix(in srgb, var(--hint) 22%, transparent) 0);
-    display: grid; place-items: center;
-  }
-  .ring::before {
-    content: attr(data-label);
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: var(--bg);
-    display: grid; place-items: center;
-    font-size: 12px; font-weight: 600;
-  }
+  .by { font-size: 13px; font-weight: 400; color: var(--hint); }
+  .ai-badge { display: inline-flex; align-items: center; gap: 6px; border: none; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); font-weight: 600; font-size: 14px; padding: 9px 14px; border-radius: 999px; cursor: pointer; margin-bottom: 14px; }
+  .ai-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .ai-intro { color: var(--hint); font-size: 14px; line-height: 1.5; margin-bottom: 14px; }
+  .ai-block { background: var(--card); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+  .ai-block h3 { font-size: 15px; margin-bottom: 4px; }
+  .ai-block p { font-size: 14px; color: var(--hint); line-height: 1.5; }
+  .ai-example { background: color-mix(in srgb, var(--accent) 10%, transparent); border-radius: 12px; padding: 14px; font-size: 14px; line-height: 1.7; margin-top: 6px; }
+  .ai-example code { background: var(--card); padding: 2px 6px; border-radius: 6px; }
+  .close-btn { width: 100%; margin-top: 22px; border: none; background: var(--accent); color: var(--accent-text); border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 600; cursor: pointer; }
 
-  /* ---------- Полоски фильтров ---------- */
-  .chips {
-    display: flex; gap: 8px;
-    overflow-x: auto;
-    margin-bottom: 8px;
-    padding-bottom: 2px;
-    scrollbar-width: none;
-  }
+  /* переключатель Список / Календарь */
+  .segmented { display: flex; background: var(--card); border-radius: 12px; padding: 4px; margin-bottom: 14px; gap: 4px; }
+  .segmented button { flex: 1; border: none; background: none; color: var(--hint); padding: 9px; border-radius: 9px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .segmented button.active { background: var(--accent); color: var(--accent-text); }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 8px; padding-bottom: 2px; scrollbar-width: none; }
   .chips::-webkit-scrollbar { display: none; }
-  .chip {
-    border: none;
-    background: var(--card);
-    color: var(--hint);
-    padding: 7px 14px;
-    border-radius: 999px;
-    font-size: 14px;
-    white-space: nowrap;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
+  .chip { border: none; background: var(--card); color: var(--hint); padding: 7px 14px; border-radius: 999px; font-size: 14px; white-space: nowrap; cursor: pointer; flex-shrink: 0; }
   .chip.active { background: var(--accent); color: var(--accent-text); font-weight: 600; }
 
-  /* ---------- Список ---------- */
-  #list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-
-  .task {
-    position: relative;
-    background: var(--card);
-    border-radius: 14px;
-    padding: 13px 14px 13px 16px;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    animation: pop 0.16s ease;
-    overflow: hidden;
-  }
-  /* цветная полоска приоритета слева */
-  .task[data-pr="high"]::before,
-  .task[data-pr="medium"]::before,
-  .task[data-pr="low"]::before {
-    content: "";
-    position: absolute; left: 0; top: 0; bottom: 0;
-    width: 4px;
-  }
-  .task[data-pr="high"]::before   { background: var(--p-high); }
+  #list, #dayList { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .task { position: relative; background: var(--card); border-radius: 14px; padding: 13px 14px 13px 16px; display: flex; align-items: flex-start; gap: 12px; animation: pop 0.16s ease; overflow: hidden; }
+  .task[data-pr="high"]::before, .task[data-pr="medium"]::before, .task[data-pr="low"]::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+  .task[data-pr="high"]::before { background: var(--p-high); }
   .task[data-pr="medium"]::before { background: var(--p-mid); }
-  .task[data-pr="low"]::before    { background: var(--p-low); }
-
+  .task[data-pr="low"]::before { background: var(--p-low); }
   @keyframes pop { from { transform: scale(0.98); opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .task { animation: none; } }
-
-  .check {
-    width: 24px; height: 24px; min-width: 24px;
-    margin-top: 1px;
-    border-radius: 50%;
-    border: 2px solid var(--hint);
-    background: none; cursor: pointer;
-    display: grid; place-items: center;
-    font-size: 13px; color: transparent;
-  }
+  .check { width: 24px; height: 24px; min-width: 24px; margin-top: 1px; border-radius: 50%; border: 2px solid var(--hint); background: none; cursor: pointer; display: grid; place-items: center; font-size: 13px; color: transparent; }
   .task.done .check { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-
   .body { flex: 1; min-width: 0; cursor: pointer; }
   .body .title { font-size: 16px; word-break: break-word; line-height: 1.3; }
   .task.done .title { color: var(--hint); text-decoration: line-through; }
-
-  /* строка меток под названием */
   .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .meta:empty { display: none; }
-  .tag {
-    font-size: 12px;
-    padding: 2px 8px;
-    border-radius: 6px;
-    background: color-mix(in srgb, var(--hint) 15%, transparent);
-    color: var(--hint);
-    display: inline-flex; align-items: center; gap: 4px;
-  }
-  .tag.due-over  { background: color-mix(in srgb, var(--overdue) 18%, transparent); color: var(--overdue); }
+  .tag { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: color-mix(in srgb, var(--hint) 15%, transparent); color: var(--hint); display: inline-flex; align-items: center; gap: 4px; }
+  .tag.due-over { background: color-mix(in srgb, var(--overdue) 18%, transparent); color: var(--overdue); }
   .tag.due-today { background: color-mix(in srgb, var(--today) 20%, transparent); color: var(--today); }
+  #empty { text-align: center; color: var(--hint); padding: 48px 16px; font-size: 15px; line-height: 1.5; }
 
-  #empty {
-    text-align: center; color: var(--hint);
-    padding: 48px 16px; font-size: 15px; line-height: 1.5;
-  }
+  /* календарь */
+  .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .cal-head .m { font-size: 17px; font-weight: 600; text-transform: capitalize; }
+  .cal-nav { border: none; background: var(--card); color: var(--text); width: 36px; height: 36px; border-radius: 10px; font-size: 18px; cursor: pointer; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-wd { text-align: center; font-size: 12px; color: var(--hint); padding: 4px 0; }
+  .cal-day { aspect-ratio: 1; border: none; background: var(--card); color: var(--text); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 15px; cursor: pointer; }
+  .cal-day.empty { background: transparent; cursor: default; }
+  .cal-day.today { outline: 2px solid var(--accent); }
+  .cal-day.sel { background: var(--accent); color: var(--accent-text); }
+  .cal-dots { display: flex; gap: 3px; height: 5px; align-items: center; }
+  .cal-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+  .cal-dot.over { background: var(--overdue); }
+  .cal-dot.high { background: var(--p-high); }
+  .cal-day.sel .cal-dot { background: var(--accent-text); }
+  .day-label { font-size: 15px; font-weight: 600; margin: 20px 0 6px; text-transform: capitalize; }
+  .day-empty { text-align: center; color: var(--hint); padding: 24px; font-size: 14px; }
 
-  /* ---------- Панель добавления ---------- */
-  .composer {
-    position: fixed; left: 0; right: 0; bottom: 0;
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-    background: var(--bg);
-    display: flex; gap: 8px;
-    z-index: 20;
-  }
-  .composer input {
-    flex: 1; border: none;
-    background: var(--card); color: var(--text);
-    border-radius: 999px; padding: 13px 18px;
-    font-size: 16px; outline: none;
-  }
+  .composer { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: var(--bg); display: flex; gap: 8px; z-index: 20; }
+  .composer input { flex: 1; border: none; background: var(--card); color: var(--text); border-radius: 999px; padding: 13px 18px; font-size: 16px; outline: none; }
   .composer input::placeholder { color: var(--hint); }
-  .composer button {
-    border: none; background: var(--accent); color: var(--accent-text);
-    width: 48px; height: 48px; min-width: 48px;
-    border-radius: 50%; font-size: 22px; cursor: pointer;
-  }
+  .composer button { border: none; background: var(--accent); color: var(--accent-text); width: 48px; height: 48px; min-width: 48px; border-radius: 50%; font-size: 22px; cursor: pointer; }
   .composer button:disabled { opacity: 0.4; }
 
-  /* ---------- Карточка задачи (детали) ---------- */
-  .sheet {
-    position: fixed; inset: 0;
-    background: var(--bg);
-    z-index: 50;
-    transform: translateY(100%);
-    transition: transform 0.25s ease;
-    overflow-y: auto;
-    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
-  }
+  .sheet { position: fixed; inset: 0; background: var(--bg); z-index: 50; transform: translateY(100%); transition: transform 0.25s ease; overflow-y: auto; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }
   .sheet.open { transform: translateY(0); }
   @media (prefers-reduced-motion: reduce) { .sheet { transition: none; } }
-
   .sheet h2 { font-size: 13px; color: var(--hint); font-weight: 600; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .03em; }
   .sheet h2:first-of-type { margin-top: 8px; }
-
-  .field-title {
-    width: 100%; border: none; outline: none;
-    background: var(--card); color: var(--text);
-    border-radius: 12px; padding: 14px;
-    font-size: 18px; font-weight: 600;
-  }
-
-  /* кнопки приоритета */
+  .field-title { width: 100%; border: none; outline: none; background: var(--card); color: var(--text); border-radius: 12px; padding: 14px; font-size: 18px; font-weight: 600; }
   .prio-row { display: flex; gap: 8px; }
-  .prio {
-    flex: 1; border: 2px solid transparent;
-    background: var(--card); color: var(--text);
-    padding: 11px; border-radius: 12px;
-    font-size: 14px; cursor: pointer;
-  }
-  .prio[data-v="high"].sel   { border-color: var(--p-high); color: var(--p-high); font-weight: 600; }
-  .prio[data-v="medium"].sel { border-color: var(--p-mid);  color: var(--p-mid);  font-weight: 600; }
-  .prio[data-v="low"].sel    { border-color: var(--p-low);  color: var(--p-low);  font-weight: 600; }
-  .prio[data-v="none"].sel   { border-color: var(--hint);   color: var(--hint);   font-weight: 600; }
-
-  .field {
-    width: 100%; border: none; outline: none;
-    background: var(--card); color: var(--text);
-    border-radius: 12px; padding: 13px 14px; font-size: 16px;
-  }
+  .prio { flex: 1; border: 2px solid transparent; background: var(--card); color: var(--text); padding: 11px; border-radius: 12px; font-size: 14px; cursor: pointer; }
+  .prio[data-v="high"].sel { border-color: var(--p-high); color: var(--p-high); font-weight: 600; }
+  .prio[data-v="medium"].sel { border-color: var(--p-mid); color: var(--p-mid); font-weight: 600; }
+  .prio[data-v="low"].sel { border-color: var(--p-low); color: var(--p-low); font-weight: 600; }
+  .prio[data-v="none"].sel { border-color: var(--hint); color: var(--hint); font-weight: 600; }
+  .field { width: 100%; border: none; outline: none; background: var(--card); color: var(--text); border-radius: 12px; padding: 13px 14px; font-size: 16px; }
   input[type="date"].field { min-height: 48px; }
-
-  /* подзадачи */
-  .sub {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--card); border-radius: 10px;
-    padding: 10px 12px; margin-bottom: 6px;
-  }
+  .sub { display: flex; align-items: center; gap: 10px; background: var(--card); border-radius: 10px; padding: 10px 12px; margin-bottom: 6px; }
   .sub .check { width: 20px; height: 20px; min-width: 20px; font-size: 11px; }
   .sub span { flex: 1; font-size: 15px; word-break: break-word; }
   .sub.sdone span { color: var(--hint); text-decoration: line-through; }
   .sub .x { border: none; background: none; color: var(--hint); font-size: 16px; cursor: pointer; padding: 2px 4px; }
   .sub-add { display: flex; gap: 8px; margin-top: 8px; }
-  .sub-add input {
-    flex: 1; border: none; outline: none;
-    background: var(--card); color: var(--text);
-    border-radius: 10px; padding: 11px 13px; font-size: 15px;
-  }
-  .sub-add button {
-    border: none; background: color-mix(in srgb, var(--accent) 18%, transparent);
-    color: var(--accent); border-radius: 10px; padding: 0 16px;
-    font-size: 20px; cursor: pointer;
-  }
+  .sub-add input { flex: 1; border: none; outline: none; background: var(--card); color: var(--text); border-radius: 10px; padding: 11px 13px; font-size: 15px; }
+  .sub-add button { border: none; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); border-radius: 10px; padding: 0 16px; font-size: 20px; cursor: pointer; }
+  .delete-btn { width: 100%; margin-top: 28px; border: none; background: color-mix(in srgb, var(--p-high) 14%, transparent); color: var(--p-high); border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 600; cursor: pointer; }
 
-  .delete-btn {
-    width: 100%; margin-top: 28px;
-    border: none; background: color-mix(in srgb, var(--p-high) 14%, transparent);
-    color: var(--p-high); border-radius: 12px;
-    padding: 14px; font-size: 16px; font-weight: 600; cursor: pointer;
-  }
-
-  /* ---------- Тост отмены ---------- */
-  .toast {
-    position: fixed; left: 16px; right: 16px; bottom: 84px;
-    background: var(--text); color: var(--bg);
-    border-radius: 12px; padding: 13px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 15px; z-index: 40;
-    transform: translateY(150%); transition: transform 0.25s ease;
-  }
-  .toast.show { transform: translateY(0); }
-  .toast button {
-    border: none; background: none; color: var(--accent);
-    font-size: 15px; font-weight: 700; cursor: pointer;
-  }
-
+  .toast { position: fixed; left: 16px; right: 16px; bottom: 84px; background: var(--text); color: var(--bg); border-radius: 12px; padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; z-index: 40; opacity: 0; transform: translateY(12px); pointer-events: none; transition: opacity .2s ease, transform .2s ease; }
+  .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .toast span { min-width: 0; }
+  .toast button { border: none; background: none; color: var(--accent); font-size: 15px; font-weight: 700; cursor: pointer; white-space: nowrap; }
   button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
 </head>
@@ -263,35 +124,50 @@
 
 <header>
   <div>
-    <h1>Мои задачи</h1>
+    <h1>Мои задачи <span class="by">by agalts</span></h1>
     <div class="date" id="date"></div>
   </div>
   <div class="ring" id="ring" data-label="0%"></div>
 </header>
 
-<!-- фильтр по статусу -->
-<div class="chips" id="statusFilter">
-  <button class="chip active" data-filter="all">Все</button>
-  <button class="chip" data-filter="active">Активные</button>
-  <button class="chip" data-filter="done">Готово</button>
+<button class="ai-badge" id="aiInfo">✨ Умные функции</button>
+
+<div class="segmented" id="viewSwitch">
+  <button data-view="list" class="active">Список</button>
+  <button data-view="calendar">Календарь</button>
 </div>
 
-<!-- фильтр по категориям (заполняется из задач) -->
-<div class="chips" id="catFilter"></div>
+<!-- ВИД: СПИСОК -->
+<div id="listView">
+  <div class="chips" id="statusFilter">
+    <button class="chip active" data-filter="all">Все</button>
+    <button class="chip" data-filter="active">Активные</button>
+    <button class="chip" data-filter="done">Готово</button>
+  </div>
+  <div class="chips" id="catFilter"></div>
+  <div id="list"></div>
+  <div id="empty" hidden>Пока пусто.<br>Добавь первую задачу ниже 👇</div>
+</div>
 
-<div id="list"></div>
-<div id="empty" hidden>Пока пусто.<br>Добавь первую задачу ниже 👇</div>
+<!-- ВИД: КАЛЕНДАРЬ -->
+<div id="calendarView" style="display:none">
+  <div class="cal-head">
+    <button class="cal-nav" id="prevMonth" aria-label="Прошлый месяц">‹</button>
+    <div class="m" id="monthLabel"></div>
+    <button class="cal-nav" id="nextMonth" aria-label="Следующий месяц">›</button>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+  <div class="day-label" id="dayLabel"></div>
+  <div id="dayList"></div>
+</div>
 
-<!-- панель добавления -->
 <div class="composer">
-  <input id="input" type="text" placeholder="Новая задача…" maxlength="200">
+  <input id="input" type="text" placeholder="Задача… (напр. купить хлеб завтра !!)" maxlength="200">
   <button id="add" disabled aria-label="Добавить">+</button>
 </div>
 
-<!-- карточка деталей задачи -->
 <div class="sheet" id="sheet">
   <input class="field-title" id="d-title" maxlength="200" placeholder="Название задачи">
-
   <h2>Приоритет</h2>
   <div class="prio-row" id="d-prio">
     <button class="prio" data-v="high">Высокий</button>
@@ -299,78 +175,64 @@
     <button class="prio" data-v="low">Низкий</button>
     <button class="prio" data-v="none">—</button>
   </div>
-
   <h2>Срок</h2>
   <input class="field" id="d-due" type="date">
-
   <h2>Категория</h2>
   <input class="field" id="d-cat" list="cat-list" maxlength="30" placeholder="Напр. Работа, Дом, Учёба">
   <datalist id="cat-list"></datalist>
-
   <h2>Подзадачи</h2>
   <div id="d-subs"></div>
   <div class="sub-add">
     <input id="d-sub-input" maxlength="120" placeholder="Добавить пункт…">
     <button id="d-sub-add" aria-label="Добавить пункт">+</button>
   </div>
-
   <button class="delete-btn" id="d-delete">Удалить задачу</button>
 </div>
 
-<!-- тост отмены удаления -->
+<div class="sheet" id="aiSheet">
+  <div class="ai-title">✨ Умные функции</div>
+  <div class="ai-intro">Добавляй задачи обычным языком — приложение само распознаёт детали и заполняет поля.</div>
+  <div class="ai-block"><h3>📅 Сроки</h3><p>«сегодня», «завтра», «послезавтра», «в пятницу», «15.07», «5 июля»</p></div>
+  <div class="ai-block"><h3>🔴 Приоритет</h3><p>«!» — средний, «!!» — высокий, а также слова «срочно», «важно»</p></div>
+  <div class="ai-block"><h3>🏷️ Категория</h3><p>через символ #, например #работа или #дом</p></div>
+  <div class="ai-example">Пример: <code>купить подарок в субботу !! #дом</code><br>→ создаст задачу «купить подарок» на субботу, с высоким приоритетом и категорией «дом».</div>
+  <button class="close-btn" id="aiClose">Понятно</button>
+</div>
+
 <div class="toast" id="toast">
-  <span>Задача удалена</span>
+  <span id="toast-text">Задача удалена</span>
   <button id="undo">Отменить</button>
 </div>
 
 <script>
-/* ==============================================================
-   Данные хранятся в облаке Телеграма (CloudStorage).
-   Одна задача:
-   { id, title, done, priority, due, category, subtasks: [{id,title,done}] }
-   ============================================================== */
-
 const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
+tg.ready(); tg.expand();
 
 const STORAGE_KEY = 'tasks_v2';
 let tasks = [];
-let statusFilter = 'all';   // all | active | done
-let catFilter = null;       // null = все категории
-let openId = null;          // id открытой в карточке задачи
-let lastDeleted = null;     // для «Отменить»
+let statusFilter = 'all';
+let catFilter = null;
+let openId = null;
+let activeSheet = null;
+let lastDeleted = null;
 let toastTimer = null;
+let view = 'list';
+let calMonth = new Date();
+let selectedDate = null;
+let calInit = false;
 
-/* ---------- Хранилище ---------- */
 const storage = {
-  save() {
-    if (tg.CloudStorage && tg.initData) {
-      tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify(tasks), () => {});
-    }
-  },
-  load(cb) {
-    if (tg.CloudStorage && tg.initData) {
-      tg.CloudStorage.getItem(STORAGE_KEY, (err, val) => {
-        if (!err && val) { try { tasks = JSON.parse(val); } catch (e) {} }
-        cb();
-      });
-    } else { cb(); }
-  }
+  save() { if (tg.CloudStorage && tg.initData) tg.CloudStorage.setItem(STORAGE_KEY, JSON.stringify(tasks), () => {}); },
+  load(cb) { if (tg.CloudStorage && tg.initData) { tg.CloudStorage.getItem(STORAGE_KEY, (e, v) => { if (!e && v) { try { tasks = JSON.parse(v); } catch (x) {} } cb(); }); } else cb(); }
 };
-
 function haptic(t) { try { tg.HapticFeedback.impactOccurred(t); } catch (e) {} }
 const uid = () => Date.now() + Math.floor(Math.random() * 1000);
-
-/* ---------- Работа с датами ---------- */
-function todayStr() {
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-}
+const PRIO_ORDER = { high: 0, medium: 1, low: 2 };
+function dateToStr(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function todayStr() { return dateToStr(new Date()); }
 function dueInfo(due) {
   if (!due) return null;
-  const d = new Date(due + 'T00:00:00');
-  const t = new Date(todayStr() + 'T00:00:00');
+  const d = new Date(due + 'T00:00:00'), t = new Date(todayStr() + 'T00:00:00');
   const diff = Math.round((d - t) / 86400000);
   let cls = '', label;
   if (diff < 0) { cls = 'due-over'; label = 'Просрочено'; }
@@ -380,39 +242,109 @@ function dueInfo(due) {
   return { cls, label };
 }
 
-/* ---------- CRUD ---------- */
-function addTask(title) {
-  tasks.unshift({ id: uid(), title, done: false, priority: null, due: null, category: null, subtasks: [] });
-  storage.save(); haptic('light'); render();
-}
-function toggleTask(id) {
-  const t = tasks.find(t => t.id === id);
-  if (t) t.done = !t.done;
-  storage.save(); haptic('light'); render();
-}
-function deleteTask(id) {
-  const idx = tasks.findIndex(t => t.id === id);
-  if (idx === -1) return;
-  lastDeleted = { task: tasks[idx], index: idx };
-  tasks.splice(idx, 1);
-  storage.save(); haptic('medium'); render();
-  showToast();
+/* ---------- УМНОЕ ДОБАВЛЕНИЕ: разбор текста ---------- */
+function parseSmart(raw) {
+  let text = ' ' + raw + ' ';
+  let due = null, priority = null, category = null;
+
+  const catM = text.match(/#(\S+)/);
+  if (catM) { category = catM[1]; text = text.replace(catM[0], ' '); }
+
+  const bangM = text.match(/!+/);
+  if (bangM) { priority = bangM[0].length >= 2 ? 'high' : 'medium'; text = text.replace(/!+/g, ' '); }
+  if (/(^|\s)(срочно|важно)(\s|$)/i.test(text)) { priority = 'high'; text = text.replace(/(срочно|важно)/ig, ' '); }
+
+  const today = new Date();
+  const set = d => { due = dateToStr(d); };
+  if (/(^|\s)сегодня(\s|$)/i.test(text)) { set(today); text = text.replace(/сегодня/ig, ' '); }
+  else if (/(^|\s)послезавтра(\s|$)/i.test(text)) { const d = new Date(today); d.setDate(d.getDate() + 2); set(d); text = text.replace(/послезавтра/ig, ' '); }
+  else if (/(^|\s)завтра(\s|$)/i.test(text)) { const d = new Date(today); d.setDate(d.getDate() + 1); set(d); text = text.replace(/завтра/ig, ' '); }
+  else {
+    const wd = { 'понедельник': 1, 'вторник': 2, 'среду': 3, 'среда': 3, 'четверг': 4, 'пятницу': 5, 'пятница': 5, 'субботу': 6, 'суббота': 6, 'воскресенье': 0 };
+    for (const key in wd) {
+      const re = new RegExp('(^|\\s)' + key + '(\\s|$)', 'i');
+      if (re.test(text)) {
+        const d = new Date(today);
+        let add = (wd[key] - d.getDay() + 7) % 7; if (add === 0) add = 7;
+        d.setDate(d.getDate() + add); set(d);
+        text = text.replace(new RegExp(key, 'i'), ' ');
+        break;
+      }
+    }
+  }
+  if (!due) {
+    const dm = text.match(/(^|\s)(\d{1,2})\.(\d{1,2})(?:\.(\d{2,4}))?(\s|$)/);
+    if (dm) {
+      let y = dm[4] ? parseInt(dm[4]) : today.getFullYear(); if (y < 100) y += 2000;
+      const d = new Date(y, parseInt(dm[3]) - 1, parseInt(dm[2]));
+      if (!isNaN(d.getTime())) { set(d); text = text.replace(dm[0], ' '); }
+    }
+  }
+  if (!due) {
+    const months = { 'янв': 0, 'фев': 1, 'мар': 2, 'апр': 3, 'ма': 4, 'июн': 5, 'июл': 6, 'авг': 7, 'сен': 8, 'окт': 9, 'ноя': 10, 'дек': 11 };
+    const mm = text.match(/(^|\s)(\d{1,2})\s+([а-яё]+)/i);
+    if (mm) {
+      const mon = mm[3].toLowerCase();
+      for (const stem in months) { if (mon.startsWith(stem)) { set(new Date(today.getFullYear(), months[stem], parseInt(mm[2]))); text = text.replace(mm[0], ' '); break; } }
+    }
+  }
+  let title = text.replace(/\s+/g, ' ').trim();
+  title = title.replace(/\s+(в|во|на|к|до|к\s)$/i, '').trim(); // убираем висящий предлог
+  return { title: title || raw.trim(), due, priority, category };
 }
 
-/* ---------- Отрисовка списка ---------- */
+/* ---------- CRUD ---------- */
+function addTaskSmart(raw) {
+  const p = parseSmart(raw);
+  tasks.unshift({ id: uid(), title: p.title, done: false, priority: p.priority, due: p.due, category: p.category, subtasks: [] });
+  storage.save(); haptic('light'); render();
+  // покажем, что распознали
+  const parts = [];
+  if (p.due) { const di = dueInfo(p.due); parts.push('📅 ' + (di ? di.label : p.due)); }
+  if (p.priority) parts.push({ high: '🔴 высокий', medium: '🟠 средний', low: '🔵 низкий' }[p.priority]);
+  if (p.category) parts.push('#' + p.category);
+  if (parts.length) showToast('Распознано: ' + parts.join(' · '), false, 2800);
+}
+function toggleTask(id) { const t = tasks.find(t => t.id === id); if (t) t.done = !t.done; storage.save(); haptic('light'); render(); }
+function deleteTask(id) {
+  const idx = tasks.findIndex(t => t.id === id); if (idx === -1) return;
+  lastDeleted = { task: tasks[idx], index: idx };
+  tasks.splice(idx, 1); storage.save(); haptic('medium'); render();
+  showToast('Задача удалена', true, 4000);
+}
+
+/* ---------- строка задачи (общая для списка и календаря) ---------- */
+function makeTaskRow(t) {
+  const el = document.createElement('div');
+  el.className = 'task' + (t.done ? ' done' : '');
+  if (t.priority) el.dataset.pr = t.priority;
+  const check = document.createElement('button');
+  check.className = 'check'; check.textContent = '✓'; check.setAttribute('aria-label', 'Выполнено');
+  check.onclick = (e) => { e.stopPropagation(); toggleTask(t.id); };
+  const body = document.createElement('div');
+  body.className = 'body'; body.onclick = () => openDetail(t.id);
+  const title = document.createElement('div');
+  title.className = 'title'; title.textContent = t.title; body.appendChild(title);
+  const meta = document.createElement('div'); meta.className = 'meta';
+  if (t.category) { const c = document.createElement('span'); c.className = 'tag'; c.textContent = t.category; meta.appendChild(c); }
+  const di = dueInfo(t.due);
+  if (di && !t.done) { const d = document.createElement('span'); d.className = 'tag ' + di.cls; d.textContent = '📅 ' + di.label; meta.appendChild(d); }
+  if (t.subtasks && t.subtasks.length) { const ds = t.subtasks.filter(s => s.done).length; const s = document.createElement('span'); s.className = 'tag'; s.textContent = '☑ ' + ds + '/' + t.subtasks.length; meta.appendChild(s); }
+  body.appendChild(meta);
+  el.append(check, body);
+  return el;
+}
+
+/* ---------- отрисовка ---------- */
 const list = document.getElementById('list');
 const empty = document.getElementById('empty');
 const ring = document.getElementById('ring');
 const catFilterEl = document.getElementById('catFilter');
-const PRIO_ORDER = { high: 0, medium: 1, low: 2 };
 
 function render() {
-  const total = tasks.length;
-  const done = tasks.filter(t => t.done).length;
+  const total = tasks.length, done = tasks.filter(t => t.done).length;
   const pct = total ? Math.round(done / total * 100) : 0;
-  ring.style.setProperty('--p', pct);
-  ring.dataset.label = pct + '%';
-
+  ring.style.setProperty('--p', pct); ring.dataset.label = pct + '%';
   renderCatFilter();
 
   let visible = tasks.filter(t => {
@@ -421,240 +353,151 @@ function render() {
     if (catFilter && t.category !== catFilter) return false;
     return true;
   });
-
-  visible.sort((a, b) => {
-    if (a.done !== b.done) return a.done ? 1 : -1;
-    const pa = a.priority ? PRIO_ORDER[a.priority] : 3;
-    const pb = b.priority ? PRIO_ORDER[b.priority] : 3;
-    if (pa !== pb) return pa - pb;
-    if (a.due && b.due) return a.due < b.due ? -1 : 1;
-    if (a.due) return -1;
-    if (b.due) return 1;
-    return 0;
-  });
-
+  visible.sort(sortTasks);
   list.innerHTML = '';
   empty.hidden = visible.length > 0;
+  for (const t of visible) list.appendChild(makeTaskRow(t));
 
-  for (const t of visible) {
-    const el = document.createElement('div');
-    el.className = 'task' + (t.done ? ' done' : '');
-    if (t.priority) el.dataset.pr = t.priority;
-
-    const check = document.createElement('button');
-    check.className = 'check';
-    check.textContent = '✓';
-    check.setAttribute('aria-label', 'Выполнено');
-    check.onclick = (e) => { e.stopPropagation(); toggleTask(t.id); };
-
-    const body = document.createElement('div');
-    body.className = 'body';
-    body.onclick = () => openDetail(t.id);
-
-    const title = document.createElement('div');
-    title.className = 'title';
-    title.textContent = t.title;
-    body.appendChild(title);
-
-    const meta = document.createElement('div');
-    meta.className = 'meta';
-    if (t.category) {
-      const c = document.createElement('span');
-      c.className = 'tag';
-      c.textContent = t.category;
-      meta.appendChild(c);
-    }
-    const di = dueInfo(t.due);
-    if (di && !t.done) {
-      const d = document.createElement('span');
-      d.className = 'tag ' + di.cls;
-      d.textContent = '📅 ' + di.label;
-      meta.appendChild(d);
-    }
-    if (t.subtasks && t.subtasks.length) {
-      const doneSubs = t.subtasks.filter(s => s.done).length;
-      const s = document.createElement('span');
-      s.className = 'tag';
-      s.textContent = '☑ ' + doneSubs + '/' + t.subtasks.length;
-      meta.appendChild(s);
-    }
-    body.appendChild(meta);
-
-    el.append(check, body);
-    list.appendChild(el);
-  }
+  if (calInit) { renderCalendar(); renderDayList(); }
 }
-
+function sortTasks(a, b) {
+  if (a.done !== b.done) return a.done ? 1 : -1;
+  const pa = a.priority ? PRIO_ORDER[a.priority] : 3, pb = b.priority ? PRIO_ORDER[b.priority] : 3;
+  if (pa !== pb) return pa - pb;
+  if (a.due && b.due) return a.due < b.due ? -1 : 1;
+  if (a.due) return -1; if (b.due) return 1; return 0;
+}
 function renderCatFilter() {
   const cats = [...new Set(tasks.map(t => t.category).filter(Boolean))];
   catFilterEl.innerHTML = '';
   if (!cats.length) { catFilter = null; return; }
+  const allBtn = mkChip('Все категории', catFilter === null); allBtn.onclick = () => { catFilter = null; render(); }; catFilterEl.appendChild(allBtn);
+  for (const c of cats) { const b = mkChip(c, catFilter === c); b.onclick = () => { catFilter = c; render(); }; catFilterEl.appendChild(b); }
+}
+function mkChip(text, active) { const b = document.createElement('button'); b.className = 'chip' + (active ? ' active' : ''); b.textContent = text; return b; }
 
-  const allBtn = mkChip('Все категории', catFilter === null);
-  allBtn.onclick = () => { catFilter = null; render(); };
-  catFilterEl.appendChild(allBtn);
+/* ---------- календарь ---------- */
+const calGrid = document.getElementById('calGrid');
+const monthLabel = document.getElementById('monthLabel');
+const dayLabel = document.getElementById('dayLabel');
+const dayList = document.getElementById('dayList');
 
-  for (const c of cats) {
-    const b = mkChip(c, catFilter === c);
-    b.onclick = () => { catFilter = c; render(); };
-    catFilterEl.appendChild(b);
+function renderCalendar() {
+  const y = calMonth.getFullYear(), m = calMonth.getMonth();
+  monthLabel.textContent = calMonth.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+  calGrid.innerHTML = '';
+  ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].forEach(w => { const c = document.createElement('div'); c.className = 'cal-wd'; c.textContent = w; calGrid.appendChild(c); });
+  const startDow = (new Date(y, m, 1).getDay() + 6) % 7;
+  for (let i = 0; i < startDow; i++) { const e = document.createElement('div'); e.className = 'cal-day empty'; calGrid.appendChild(e); }
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const today = todayStr();
+  for (let day = 1; day <= daysInMonth; day++) {
+    const ds = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    const cell = document.createElement('button'); cell.className = 'cal-day';
+    if (ds === today) cell.classList.add('today');
+    if (ds === selectedDate) cell.classList.add('sel');
+    const num = document.createElement('span'); num.textContent = day; cell.appendChild(num);
+    const dayTasks = tasks.filter(t => t.due === ds);
+    const dots = document.createElement('div'); dots.className = 'cal-dots';
+    for (let i = 0; i < Math.min(dayTasks.length, 3); i++) {
+      const t = dayTasks[i], dot = document.createElement('span'); dot.className = 'cal-dot';
+      if (!t.done && ds < today) dot.classList.add('over');
+      else if (t.priority === 'high') dot.classList.add('high');
+      dots.appendChild(dot);
+    }
+    cell.appendChild(dots);
+    cell.onclick = () => { selectedDate = ds; render(); };
+    calGrid.appendChild(cell);
   }
 }
-function mkChip(text, active) {
-  const b = document.createElement('button');
-  b.className = 'chip' + (active ? ' active' : '');
-  b.textContent = text;
-  return b;
+function renderDayList() {
+  const items = tasks.filter(t => t.due === selectedDate).sort(sortTasks);
+  dayLabel.textContent = 'Задачи на ' + new Date(selectedDate + 'T00:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  dayList.innerHTML = '';
+  if (!items.length) { const e = document.createElement('div'); e.className = 'day-empty'; e.textContent = 'Нет задач на этот день'; dayList.appendChild(e); return; }
+  for (const t of items) dayList.appendChild(makeTaskRow(t));
 }
+document.getElementById('prevMonth').onclick = () => { calMonth.setMonth(calMonth.getMonth() - 1); renderCalendar(); };
+document.getElementById('nextMonth').onclick = () => { calMonth.setMonth(calMonth.getMonth() + 1); renderCalendar(); };
 
-/* ---------- Карточка деталей ---------- */
-const sheet = document.getElementById('sheet');
-const dTitle = document.getElementById('d-title');
-const dPrio = document.getElementById('d-prio');
-const dDue = document.getElementById('d-due');
-const dCat = document.getElementById('d-cat');
-const dSubs = document.getElementById('d-subs');
-const dSubInput = document.getElementById('d-sub-input');
-
-function openDetail(id) {
-  openId = id;
-  const t = tasks.find(t => t.id === id);
-  if (!t) return;
-  dTitle.value = t.title;
-  dDue.value = t.due || '';
-  dCat.value = t.category || '';
-  setPrioButtons(t.priority);
-  renderSubs(t);
-  updateCatList();
-  sheet.classList.add('open');
-  tg.BackButton.show();
-}
-
-function closeDetail() {
-  const t = tasks.find(t => t.id === openId);
-  if (t) {
-    const nt = dTitle.value.trim();
-    if (nt) t.title = nt;
-    t.due = dDue.value || null;
-    t.category = dCat.value.trim() || null;
-    storage.save();
-  }
-  openId = null;
-  sheet.classList.remove('open');
-  tg.BackButton.hide();
-  render();
-}
-
-function setPrioButtons(value) {
-  dPrio.querySelectorAll('.prio').forEach(b => {
-    b.classList.toggle('sel', b.dataset.v === (value || 'none'));
-  });
-}
-dPrio.querySelectorAll('.prio').forEach(btn => {
+/* ---------- переключатель видов ---------- */
+document.getElementById('viewSwitch').querySelectorAll('button').forEach(btn => {
   btn.onclick = () => {
-    const t = tasks.find(t => t.id === openId);
-    if (!t) return;
-    const v = btn.dataset.v;
-    t.priority = v === 'none' ? null : v;
-    setPrioButtons(t.priority);
-    storage.save(); haptic('light');
+    document.querySelector('#viewSwitch .active').classList.remove('active');
+    btn.classList.add('active'); view = btn.dataset.view;
+    if (view === 'calendar') {
+      if (!calInit) { selectedDate = todayStr(); calMonth = new Date(); calInit = true; }
+      document.getElementById('listView').style.display = 'none';
+      document.getElementById('calendarView').style.display = '';
+      renderCalendar(); renderDayList();
+    } else {
+      document.getElementById('listView').style.display = '';
+      document.getElementById('calendarView').style.display = 'none';
+    }
+    haptic('light');
   };
 });
 
+/* ---------- карточка деталей ---------- */
+const sheet = document.getElementById('sheet');
+const dTitle = document.getElementById('d-title'), dPrio = document.getElementById('d-prio'), dDue = document.getElementById('d-due'), dCat = document.getElementById('d-cat'), dSubs = document.getElementById('d-subs'), dSubInput = document.getElementById('d-sub-input');
+function openDetail(id) {
+  openId = id; const t = tasks.find(t => t.id === id); if (!t) return;
+  dTitle.value = t.title; dDue.value = t.due || ''; dCat.value = t.category || '';
+  setPrioButtons(t.priority); renderSubs(t); updateCatList();
+  sheet.classList.add('open'); activeSheet = 'detail'; tg.BackButton.show();
+}
+function closeDetail() {
+  const t = tasks.find(t => t.id === openId);
+  if (t) { const nt = dTitle.value.trim(); if (nt) t.title = nt; t.due = dDue.value || null; t.category = dCat.value.trim() || null; storage.save(); }
+  openId = null; sheet.classList.remove('open'); activeSheet = null; tg.BackButton.hide(); render();
+}
+function setPrioButtons(v) { dPrio.querySelectorAll('.prio').forEach(b => b.classList.toggle('sel', b.dataset.v === (v || 'none'))); }
+dPrio.querySelectorAll('.prio').forEach(btn => { btn.onclick = () => { const t = tasks.find(t => t.id === openId); if (!t) return; const v = btn.dataset.v; t.priority = v === 'none' ? null : v; setPrioButtons(t.priority); storage.save(); haptic('light'); }; });
 function renderSubs(t) {
   dSubs.innerHTML = '';
   for (const s of (t.subtasks || [])) {
-    const row = document.createElement('div');
-    row.className = 'sub' + (s.done ? ' sdone' : '');
-    const c = document.createElement('button');
-    c.className = 'check';
-    c.textContent = '✓';
-    c.onclick = () => { s.done = !s.done; storage.save(); haptic('light'); renderSubs(t); };
-    const span = document.createElement('span');
-    span.textContent = s.title;
-    const x = document.createElement('button');
-    x.className = 'x';
-    x.textContent = '✕';
-    x.onclick = () => { t.subtasks = t.subtasks.filter(i => i.id !== s.id); storage.save(); renderSubs(t); };
-    row.append(c, span, x);
-    dSubs.appendChild(row);
+    const row = document.createElement('div'); row.className = 'sub' + (s.done ? ' sdone' : '');
+    const c = document.createElement('button'); c.className = 'check'; c.textContent = '✓'; c.onclick = () => { s.done = !s.done; storage.save(); haptic('light'); renderSubs(t); };
+    const span = document.createElement('span'); span.textContent = s.title;
+    const x = document.createElement('button'); x.className = 'x'; x.textContent = '✕'; x.onclick = () => { t.subtasks = t.subtasks.filter(i => i.id !== s.id); storage.save(); renderSubs(t); };
+    row.append(c, span, x); dSubs.appendChild(row);
   }
 }
-
-function addSub() {
-  const t = tasks.find(t => t.id === openId);
-  const val = dSubInput.value.trim();
-  if (!t || !val) return;
-  if (!t.subtasks) t.subtasks = [];
-  t.subtasks.push({ id: uid(), title: val, done: false });
-  dSubInput.value = '';
-  storage.save(); haptic('light'); renderSubs(t);
-}
+function addSub() { const t = tasks.find(t => t.id === openId); const val = dSubInput.value.trim(); if (!t || !val) return; if (!t.subtasks) t.subtasks = []; t.subtasks.push({ id: uid(), title: val, done: false }); dSubInput.value = ''; storage.save(); haptic('light'); renderSubs(t); }
 document.getElementById('d-sub-add').onclick = addSub;
 dSubInput.addEventListener('keydown', e => { if (e.key === 'Enter') addSub(); });
+document.getElementById('d-delete').onclick = () => { const id = openId; closeDetail(); deleteTask(id); };
+function updateCatList() { const cats = [...new Set(tasks.map(t => t.category).filter(Boolean))]; const dl = document.getElementById('cat-list'); dl.innerHTML = ''; for (const c of cats) { const o = document.createElement('option'); o.value = c; dl.appendChild(o); } }
+// панель «Умные функции»
+const aiSheet = document.getElementById('aiSheet');
+function openAi() { aiSheet.classList.add('open'); activeSheet = 'ai'; tg.BackButton.show(); haptic('light'); }
+function closeAi() { aiSheet.classList.remove('open'); activeSheet = null; tg.BackButton.hide(); }
+document.getElementById('aiInfo').onclick = openAi;
+document.getElementById('aiClose').onclick = closeAi;
 
-document.getElementById('d-delete').onclick = () => {
-  const id = openId;
-  closeDetail();
-  deleteTask(id);
-};
+// одна кнопка «назад» закрывает ту панель, что открыта
+tg.BackButton.onClick(() => { if (activeSheet === 'detail') closeDetail(); else if (activeSheet === 'ai') closeAi(); });
 
-function updateCatList() {
-  const cats = [...new Set(tasks.map(t => t.category).filter(Boolean))];
-  const dl = document.getElementById('cat-list');
-  dl.innerHTML = '';
-  for (const c of cats) {
-    const o = document.createElement('option');
-    o.value = c;
-    dl.appendChild(o);
-  }
-}
-
-tg.BackButton.onClick(closeDetail);
-
-/* ---------- Добавление задачи ---------- */
-const input = document.getElementById('input');
-const addBtn = document.getElementById('add');
+/* ---------- добавление / фильтры / тост ---------- */
+const input = document.getElementById('input'), addBtn = document.getElementById('add');
 input.addEventListener('input', () => { addBtn.disabled = input.value.trim() === ''; });
-function submit() {
-  const v = input.value.trim();
-  if (!v) return;
-  addTask(v);
-  input.value = ''; addBtn.disabled = true;
-}
+function submit() { const v = input.value.trim(); if (!v) return; addTaskSmart(v); input.value = ''; addBtn.disabled = true; }
 addBtn.onclick = submit;
 input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+document.getElementById('statusFilter').querySelectorAll('.chip').forEach(btn => { btn.onclick = () => { document.querySelector('#statusFilter .active').classList.remove('active'); btn.classList.add('active'); statusFilter = btn.dataset.filter; render(); }; });
 
-/* ---------- Фильтр по статусу ---------- */
-document.getElementById('statusFilter').querySelectorAll('.chip').forEach(btn => {
-  btn.onclick = () => {
-    document.querySelector('#statusFilter .active').classList.remove('active');
-    btn.classList.add('active');
-    statusFilter = btn.dataset.filter;
-    render();
-  };
-});
-
-/* ---------- Тост «Отменить» ---------- */
-const toast = document.getElementById('toast');
-function showToast() {
+const toast = document.getElementById('toast'), toastText = document.getElementById('toast-text'), undoBtn = document.getElementById('undo');
+function showToast(text, withUndo, ms) {
+  toastText.textContent = text;
+  undoBtn.style.display = withUndo ? '' : 'none';
   toast.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { toast.classList.remove('show'); lastDeleted = null; }, 4000);
+  toastTimer = setTimeout(() => { toast.classList.remove('show'); if (withUndo) lastDeleted = null; }, ms || 4000);
 }
-document.getElementById('undo').onclick = () => {
-  if (!lastDeleted) return;
-  tasks.splice(lastDeleted.index, 0, lastDeleted.task);
-  lastDeleted = null;
-  toast.classList.remove('show');
-  storage.save(); haptic('light'); render();
-};
+undoBtn.onclick = () => { if (!lastDeleted) return; tasks.splice(lastDeleted.index, 0, lastDeleted.task); lastDeleted = null; toast.classList.remove('show'); clearTimeout(toastTimer); storage.save(); haptic('light'); render(); };
 
-/* ---------- Дата в шапке ---------- */
-document.getElementById('date').textContent =
-  new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
-
-/* ---------- Старт ---------- */
+document.getElementById('date').textContent = new Date().toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
 storage.load(render);
 </script>
 </body>
